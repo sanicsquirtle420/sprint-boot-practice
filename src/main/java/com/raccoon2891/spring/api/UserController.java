@@ -1,42 +1,44 @@
 package com.raccoon2891.spring.api;
 
-import com.raccoon2891.spring.UserNotFoundException;
-import com.raccoon2891.spring.service.SQLiteOps;
-import com.raccoon2891.spring.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import com.raccoon2891.spring.service.SQLiteOps;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import java.util.logging.*;
 
 @RestController
 public class UserController {
-    private UserService userService ;
+    private Logger logger = Logger.getLogger(UserController.class.getName()) ;
     private SQLiteOps op ;
 
     @Autowired
-    public UserController(UserService userService, SQLiteOps op) {
-        this.userService = userService ;
+    public UserController(SQLiteOps op) {
         this.op = op ;
     }
 
     @GetMapping("/user")
-    public String getUser(@RequestParam("pass") String pass) throws UserNotFoundException {
+    public ResponseEntity<String> getUser(@RequestParam("pass") String pass) {
         if(op.searchTable(pass).isEmpty()) {
-            throw new UserNotFoundException() ;
+            return new ResponseEntity<>("No user was found with the provided credentials", HttpStatus.INTERNAL_SERVER_ERROR) ;
         }
 
-        return op.searchTable(pass) ;
+        return new ResponseEntity<>(op.searchTable(pass), HttpStatus.ACCEPTED) ;
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<String> noUser(UserNotFoundException e) {
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR) ;
+    @PostMapping("/add")
+    public ResponseEntity<String> addUser(@RequestBody User u) {
+        if (!op.validUser(u)) {
+            return new ResponseEntity<>("Username is taken", HttpStatus.INTERNAL_SERVER_ERROR) ;
+        }
+
+        op.addUser(u) ;
+        logger.log(Level.INFO, "User " + u.getName() + " has been added") ;
+        return new ResponseEntity<>("User has been successfully added", HttpStatus.CREATED) ;
     }
 
-    public UserService getUserService() {
-        return userService ;
+    @GetMapping("/db")
+    public ResponseEntity<String> readDatabase() {
+        return new ResponseEntity<>(op.readTable(), HttpStatus.ACCEPTED) ;
     }
 }
