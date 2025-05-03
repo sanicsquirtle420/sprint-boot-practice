@@ -1,26 +1,45 @@
 package com.raccoon2891.spring;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.web.servlet.MockMvc;
-import static org.hamcrest.Matchers.equalTo;
-import org.springframework.http.MediaType;
+import static org.junit.jupiter.api.Assertions.*;
+import com.raccoon2891.spring.api.User;
 import org.junit.jupiter.api.Test;
 
-@SpringBootTest
-@AutoConfigureMockMvc
 public class KirikoTest {
-    @Autowired
-    private MockMvc kiriko ;
+    /* User class testing */
+    @Test
+    void noArgConst() {
+        User test = new User() ;
+        assertNotNull(test) ;
+    }
 
     @Test
-    public void helloTest() throws Exception {
-        kiriko.perform(MockMvcRequestBuilders.get("/").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().string(equalTo("Let the kitsune guide you!\n")));
+    void paramConst() {
+        User test = new User("a", "b", "c") ;
+        assertAll("Testing parameterized constructor",
+                ()-> assertEquals("a", test.getName()) ,
+                ()-> assertEquals("b", test.getUsername()) ,
+                ()-> assertEquals("c", test.getPassword())
+        ) ;
+    }
+
+    @Test
+    void nameTest() {
+        User test = new User() ;
+        test.setName("a") ;
+        assertEquals("a", test.getName()) ;
+    }
+
+    @Test
+    void usernameTest() {
+        User test = new User() ;
+        test.setUsername("a"); ;
+        assertEquals("a", test.getUsername()) ;
+    }
+
+    @Test
+    void passwordTest() {
+        User test = new User() ;
+        test.setPassword("a"); ;
+        assertEquals("a", test.getPassword()) ;
     }
 }
